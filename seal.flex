@@ -70,7 +70,12 @@ bool "true"|"false"
  /*忽略空格*/
 " "|"\t" {}
  /*匹配单行注释*/ 
-"//".*   {}
+"/\*"   {char* error = "lose match of annotation .";
+                strcpy(seal_yylval.error_msg, error);
+                return(ERROR);}
+"\*/"   {char* error = "lose match of annotation .";
+                strcpy(seal_yylval.error_msg, error);
+                return(ERROR);}
 \n       {curr_lineno += 1;}
 "var"    {return(VAR);}
 "if"     {return(IF);}
@@ -117,7 +122,7 @@ bool "true"|"false"
   *合法的规则匹配到的字符串给保留，剩下的那些不合法的再按照debug规则报错
   *
   */
-`(.|\n)*` {if (yyleng > 256) {char* error = "String too long to store!";
+`(.|\n)*` {if (yyleng > 258) {char* error = "String too long to store!";
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);}
             std::string temp = yytext;
@@ -130,7 +135,7 @@ bool "true"|"false"
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);}//String contains null character '\\0'
 
-\"((\\\")|(\\\n)|[^\n\"])*\\?\"  {//匹配""所括起来的所有内容
+\"((\\\")|(\\\n)|[^\"])*\\?\"  {//匹配""所括起来的所有内容
             if (yyleng > 258) {char* error = "String too long to store!";
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);}//超长报错
@@ -138,6 +143,12 @@ bool "true"|"false"
                 { char* error = "string should not end with \\";
                   strcpy(seal_yylval.error_msg, error);
                   return(ERROR);}//末尾\报错
+            for(int i= 1 ; i < yyleng-1;i++){
+              if (yytext[i] == '\n' && yytext[i-1] != '\\'){
+                char* error = "Want to use \n in string? Use \\ before it!";
+                strcpy(seal_yylval.error_msg, error);
+                return(ERROR);}//含有未加\而换行的错误
+            }
             
             std::string temp1 = yytext;  
             temp1 = temp1.substr(1,yyleng-2);  //截取不含""的部分
@@ -147,6 +158,10 @@ bool "true"|"false"
             char* result = (char*) temp3.data();
             seal_yylval.symbol = stringtable.add_string(result);
             return(CONST_STRING);}   //如何处理双引号字符串？里面的转义字符怎么处理,含有换行符如何处理
+\"([^\"])*  {char* error = "lose match of \" .";
+                strcpy(seal_yylval.error_msg, error);
+                return(ERROR);
+              }
  /*测试用，可删*/
  /*\".*\"     {std::string temp = yytext;  //不包含转义的字符串常量
             temp = temp.substr(1,yyleng-2);  //截取不含""的部分
@@ -200,9 +215,8 @@ bool "true"|"false"
                           }
 
 (([1-9][0-9]*)|[0-9])\.[0-9]* {seal_yylval.symbol = floattable.add_string(yytext); 
-        return(CONST_FLOAT);}//合法的浮点数匹配
-[0-9]*\.[0-9]* {}     //不合法的浮点数匹配，
-
+                              return(CONST_FLOAT);}//合法的浮点数匹配
+                             
 
 [a-z][0-9A-Za-z_]* {seal_yylval.symbol = idtable.add_string(yytext); 
 			return (OBJECTID);}//匹配变量需要放在保留字之后
