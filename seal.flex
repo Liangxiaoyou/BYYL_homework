@@ -86,6 +86,8 @@ bool "true"|"false"
 "continue"  {return(CONTINUE);}
 "func"      {return(FUNC);}
 "return"    {return(RETURN);}
+"struct"   {return(STRUCT);}
+
 "=" {return('=');}
 "+" {return('+');}
 "/" {return('/');}
@@ -219,7 +221,7 @@ bool "true"|"false"
                              
 
 [a-z][0-9A-Za-z_]* {seal_yylval.symbol = idtable.add_string(yytext); 
-			return (OBJECTID);}//匹配变量需要放在保留字之后
+			              return (OBJECTID);}//匹配变量需要放在保留字之后
 
 .   {
   	strcpy(seal_yylval.error_msg, yytext); 

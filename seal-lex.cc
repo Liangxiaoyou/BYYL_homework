@@ -943,7 +943,7 @@ extern int yylex (void);
 /* %not-for-header */
 /** The main scanner function which does all the work.
  */
-YY_DECL
+YY_DECL     //lcy:flex move our code to here.
 {
 	yy_state_type yy_current_state;
 	char *yy_cp, *yy_bp;
