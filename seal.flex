@@ -70,10 +70,10 @@ bool "true"|"false"
  /*忽略空格*/
 " "|"\t" {}
  /*匹配单行注释*/ 
-"/\*"   {char* error = "lose match of annotation .";
+"/\*"   {char* error = "lose match of annotation */ .";
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);}
-"\*/"   {char* error = "lose match of annotation .";
+"\*/"   {char* error = "lose match of annotation */ .";
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);}
 \n       {curr_lineno += 1;}
@@ -160,7 +160,7 @@ bool "true"|"false"
             char* result = (char*) temp3.data();
             seal_yylval.symbol = stringtable.add_string(result);
             return(CONST_STRING);}   //如何处理双引号字符串？里面的转义字符怎么处理,含有换行符如何处理
-\"([^\"])*  {char* error = "lose match of \" .";
+\"([^\"])*  {   char* error = "EOF in string constant";
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);
               }
@@ -183,10 +183,10 @@ bool "true"|"false"
 {bool}  {if (yytext[0] == 't') seal_yylval.boolean = true;
           else seal_yylval.boolean = false;
          return(CONST_BOOL);}
-[0-9]+ {seal_yylval.symbol = inttable.add_string(yytext); 
+0|[1-9][0-9]* {seal_yylval.symbol = inttable.add_string(yytext); 
         return(CONST_INT);
        }
-0x([0-9]|[a-f])+ { int i = 2, decimal = 0;     //先考虑16进制正数匹配
+0[x|X]([0-9]|[a-fA-F])+ { int i = 2, decimal = 0;     //先考虑16进制正数匹配
                    while (yytext[i]!= '\0'){
                      switch(yytext[i])
                      {
@@ -216,7 +216,7 @@ bool "true"|"false"
                    return(CONST_INT);
                           }
 
-(([1-9][0-9]*)|[0-9])\.[0-9]* {seal_yylval.symbol = floattable.add_string(yytext); 
+(([1-9][0-9]*)|0)\.[0-9]+ {seal_yylval.symbol = floattable.add_string(yytext); 
                               return(CONST_FLOAT);}//合法的浮点数匹配
                              
 
