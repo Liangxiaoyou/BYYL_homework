@@ -1,5 +1,6 @@
 
 A correct example of string
 */
+V23ninond
 var s String;
 s = "test string

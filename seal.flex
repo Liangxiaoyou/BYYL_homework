@@ -220,8 +220,14 @@ bool "true"|"false"
                               return(CONST_FLOAT);}//合法的浮点数匹配
                              
 
-[a-z][0-9A-Za-z_]* {seal_yylval.symbol = idtable.add_string(yytext); 
-			              return (OBJECTID);}//匹配变量需要放在保留字之后
+[a-zA-Z][0-9A-Za-z_]* {if (yytext[0] >= 65 && yytext[0]<= 90){
+                          char* error = "Initial letter could not be capital.";
+                          strcpy(seal_yylval.error_msg, error);
+                          return(ERROR);//检测首字母大写错误
+                          }
+                       else
+                          seal_yylval.symbol = idtable.add_string(yytext); 
+                          return (OBJECTID);}//匹配变量需要放在保留字之后
 
 .   {
   	strcpy(seal_yylval.error_msg, yytext); 
