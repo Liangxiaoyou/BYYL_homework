@@ -62,12 +62,11 @@ bool "true"|"false"
  *	Add Rules here. Error function has been given.
  */
  /*匹配多行注释*/
-"/\*"(.|\n)*?"\*/" { 
-                   for(int i = 0;i < yyleng;i++){
+"/\*"([^*]|\*+[^/])*\*+"/" {for(int i = 0;i < yyleng;i++){
                      if(yytext[i] == '\n') curr_lineno ++;
                     }
-                   }
- /*忽略空格*/
+                    }
+
 " "|"\t" {}
  /*匹配单行注释*/ 
 "/\*"   {char* error = "lose match of annotation */ .";
@@ -124,9 +123,14 @@ bool "true"|"false"
   *合法的规则匹配到的字符串给保留，剩下的那些不合法的再按照debug规则报错
   *
   */
-`(.|\n)*` {if (yyleng > 258) {char* error = "String too long to store!";
+`(.|\n)*` {
+              for(int i = 0;i < yyleng;i++){
+                     if(yytext[i] == '\n') curr_lineno ++;
+                    }
+              if (yyleng > 258) {char* error = "String too long to store!";
                 strcpy(seal_yylval.error_msg, error);
                 return(ERROR);}
+
             std::string temp = yytext;
             temp = temp.substr(1,yyleng-2);  //截取不含``的部分
             char* result = (char*) temp.data();
